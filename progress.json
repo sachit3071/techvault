@@ -1,0 +1,308 @@
+
+[
+    {
+        "id": "sysdesign",
+        "name": "System Design",
+        "icon": "◈",
+        "color": "blue",
+        "children": [
+            {
+                "name": "Fundamentals",
+                "children": [
+                    {
+                        "name": "Scalability & Load Balancing",
+                        "val": 50
+                    },
+                    {
+                        "name": "CAP Theorem",
+                        "val": 40
+                    },
+                    {
+                        "name": "Consistency patterns",
+                        "val": 30
+                    }
+                ]
+            },
+            {
+                "name": "Data Storage",
+                "children": [
+                    {
+                        "name": "SQL vs NoSQL",
+                        "val": 55
+                    },
+                    {
+                        "name": "Distributed Storage",
+                        "children": [
+                            {
+                                "name": "Sharding",
+                                "val": 30
+                            },
+                            {
+                                "name": "Replication",
+                                "val": 25
+                            },
+                            {
+                                "name": "Data partitioning",
+                                "val": 20
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "High Level Design",
+                "children": [
+                    {
+                        "name": "Microservices architecture",
+                        "val": 40
+                    },
+                    {
+                        "name": "Event-driven systems",
+                        "val": 20
+                    },
+                    {
+                        "name": "API Gateway patterns",
+                        "val": 35
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "backend",
+        "name": "Backend Engineering",
+        "icon": "⬡",
+        "color": "green",
+        "children": [
+            {
+                "name": "Caching",
+                "children": [
+                    {
+                        "name": "Redis fundamentals",
+                        "val": 20
+                    },
+                    {
+                        "name": "Cache invalidation",
+                        "val": 15
+                    },
+                    {
+                        "name": "CDN caching",
+                        "val": 10
+                    }
+                ]
+            },
+            {
+                "name": "Async Processing",
+                "children": [
+                    {
+                        "name": "Message queues (RabbitMQ)",
+                        "val": 25
+                    },
+                    {
+                        "name": "Kafka basics",
+                        "val": 15
+                    },
+                    {
+                        "name": "Job scheduling",
+                        "val": 20
+                    }
+                ]
+            },
+            {
+                "name": "API Design",
+                "children": [
+                    {
+                        "name": "REST best practices",
+                        "val": 55
+                    },
+                    {
+                        "name": "Rate limiting",
+                        "val": 35
+                    },
+                    {
+                        "name": "API versioning",
+                        "val": 30
+                    }
+                ]
+            },
+            {
+                "name": "Observability",
+                "children": [
+                    {
+                        "name": "Structured logging",
+                        "val": 20
+                    },
+                    {
+                        "name": "Distributed tracing",
+                        "val": 10
+                    },
+                    {
+                        "name": "Metrics & alerting",
+                        "val": 15
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "ai",
+        "name": "Applied AI",
+        "icon": "◉",
+        "color": "purple",
+        "children": [
+            {
+                "name": "RAG Systems",
+                "children": [
+                    {
+                        "name": "Chunking strategies",
+                        "val": 40
+                    },
+                    {
+                        "name": "Retrieval quality",
+                        "val": 35
+                    },
+                    {
+                        "name": "Advanced Retrieval",
+                        "children": [
+                            {
+                                "name": "Hybrid search",
+                                "val": 20
+                            },
+                            {
+                                "name": "Re-ranking",
+                                "val": 10
+                            },
+                            {
+                                "name": "Query expansion",
+                                "val": 5
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "Vector Databases",
+                "children": [
+                    {
+                        "name": "Embeddings basics",
+                        "val": 40
+                    },
+                    {
+                        "name": "Pinecone / Qdrant",
+                        "val": 30
+                    },
+                    {
+                        "name": "Similarity search",
+                        "val": 25
+                    }
+                ]
+            },
+            {
+                "name": "Agents & Workflows",
+                "children": [
+                    {
+                        "name": "Agent architecture",
+                        "val": 15
+                    },
+                    {
+                        "name": "Tool use / function calling",
+                        "val": 20
+                    },
+                    {
+                        "name": "Multi-agent systems",
+                        "val": 10
+                    }
+                ]
+            },
+            {
+                "name": "Model Evaluation",
+                "children": [
+                    {
+                        "name": "Evals design",
+                        "val": 20
+                    },
+                    {
+                        "name": "Benchmarking",
+                        "val": 15
+                    },
+                    {
+                        "name": "LLM-as-judge",
+                        "val": 10
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "infra",
+        "name": "Infra",
+        "icon": "▣",
+        "color": "amber",
+        "children": [
+            {
+                "name": "Docker",
+                "children": [
+                    {
+                        "name": "Containerization basics",
+                        "val": 55
+                    },
+                    {
+                        "name": "Docker Compose",
+                        "val": 45
+                    },
+                    {
+                        "name": "Multi-stage builds",
+                        "val": 30
+                    }
+                ]
+            },
+            {
+                "name": "Kubernetes",
+                "children": [
+                    {
+                        "name": "Pods & Deployments",
+                        "val": 30
+                    },
+                    {
+                        "name": "Services & Ingress",
+                        "val": 20
+                    },
+                    {
+                        "name": "Advanced K8s",
+                        "children": [
+                            {
+                                "name": "Helm charts",
+                                "val": 10
+                            },
+                            {
+                                "name": "Custom controllers",
+                                "val": 5
+                            },
+                            {
+                                "name": "Operators",
+                                "val": 5
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "Terraform",
+                "children": [
+                    {
+                        "name": "HCL basics",
+                        "val": 25
+                    },
+                    {
+                        "name": "State management",
+                        "val": 15
+                    },
+                    {
+                        "name": "Modules",
+                        "val": 10
+                    }
+                ]
+            }
+        ]
+    }
+]
