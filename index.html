@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TechVault — Learning Tracker</title>
+
+  <!-- Tailwind CDN for base reset + layout utilities -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Custom design layer on top of Tailwind reset ── */
+    body {
+      background: #000;
+      color: #e2e8f0;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .domain        { border: 1px solid #111; border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+    .domain-header { display: flex; align-items: center; gap: 14px; padding: 16px 18px; cursor: pointer; background: #0a0a0a; transition: background .15s; user-select: none; }
+    .domain-header:hover { background: #111; }
+    .domain-children { display: none; background: #050505; border-top: 1px solid #111; padding: 8px 0; }
+    .domain-chevron { font-size: 12px; color: #333; transition: transform .2s; font-family: 'JetBrains Mono', monospace; flex-shrink: 0; }
+
+    .node-header   { display: flex; align-items: center; cursor: pointer; transition: background .12s; user-select: none; }
+    .node-header:hover { background: #0d0d0d; }
+    .node-children { display: none; border-top: 1px solid #0a0a0a; }
+    .node.open > .node-children { display: block; }
+    .chevron { font-size: 11px; color: #333; transition: transform .2s; font-family: 'JetBrains Mono', monospace; flex-shrink: 0; }
+    .node.open > .node-header .chevron { transform: rotate(90deg); }
+
+    .bar-track { flex: 1; background: #1a1a1a; border-radius: 99px; overflow: hidden; }
+    .bar-fill  { height: 100%; border-radius: 99px; transition: width .5s cubic-bezier(.4,0,.2,1); }
+    .pct-label { font-family: 'JetBrains Mono', monospace; color: #444; text-align: right; }
+
+    .fill-blue   { background: #3b82f6; }
+    .fill-green  { background: #22c55e; }
+    .fill-purple { background: #a855f7; }
+    .fill-amber  { background: #f59e0b; }
+
+    .c-blue   { color: #3b82f6; }
+    .c-green  { color: #22c55e; }
+    .c-purple { color: #a855f7; }
+    .c-amber  { color: #f59e0b; }
+
+    .leaf-dot { width: 4px; height: 4px; border-radius: 50%; background: #222; flex-shrink: 0; }
+
+    .toggle-btn {
+      background: #111; border: 1px solid #222; color: #aaa;
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      padding: 8px 14px; border-radius: 6px; cursor: pointer; transition: all .15s;
+    }
+    .toggle-btn:hover { border-color: #444; color: #fff; }
+  </style>
+</head>
+<body>
+
+<div class="max-w-3xl mx-auto px-6 py-10">
+
+  <div class="flex items-center justify-between pb-5 mb-8" style="border-bottom:1px solid #1e1e2e;">
+    <div>
+      <h1 class="text-2xl font-bold text-white tracking-tight">techvault</h1>
+      <p class="text-xs mt-1" style="font-family:'JetBrains Mono',monospace;color:#555;">// learning tracker</p>
+    </div>
+    <button class="toggle-btn" id="toggleBtn" onclick="toggleAll()">expand all</button>
+  </div>
+
+  <p id="status" style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#555; margin-bottom:16px;">loading progress.json…</p>
+  <div id="domains"></div>
+</div>
+
+<script>
+/*
+ * ─────────────────────────────────────────────────────────────
+ *  DATA  —  edit this to update your tracker
+ *
+ *  Rules:
+ *  • Leaf node  → has `val` (0–100), no `children`
+ *  • Parent node → has `children` array, no `val` needed
+ *  • Nesting is INFINITE — add as many levels as you like
+ *  • Parent %  AUTO-RECALCULATES as avg of ALL leaf descendants
+ * ─────────────────────────────────────────────────────────────
+ */
+
+/* ─── Utils ─── */
+
+// Recursively collect all leaf `val` values under a node
+function leafVals(node) {
+  if (!node.children || !node.children.length) return [node.val ?? 0];
+  return node.children.flatMap(leafVals);
+}
+
+// Average, rounded
+function avg(arr) {
+  if (!arr.length) return 0;
+  return Math.round(arr.reduce((s, v) => s + v, 0) / arr.length);
+}
+
+// Progress of any node — auto-computed from all leaf descendants
+function progress(node) {
+  return avg(leafVals(node));
+}
+
+/* ─── Recursive renderer ─── */
+
+let uid = 0;
+
+/**
+ * Render a node at any depth.
+ * @param {object} node  - data node
+ * @param {string} color - inherited domain color
+ * @param {number} depth - 0 = first level inside a domain
+ */
+function renderNode(node, color, depth) {
+  const isLeaf = !node.children || !node.children.length;
+  const pct    = progress(node);
+
+  // Visual scaling with depth
+  const baseIndent = 46;
+  const indent     = baseIndent + depth * 16;
+  const fontSize   = Math.max(11, 13 - depth);
+  const barMaxW    = Math.max(60, 110 - depth * 12);
+  const barH       = Math.max(2, 4 - depth);
+
+  if (isLeaf) {
+    return `
+      <div class="node-header" style="padding:7px 18px 7px ${indent}px; gap:8px;">
+        <div class="leaf-dot"></div>
+        <span style="flex:1;font-size:${fontSize}px;color:#475569;">${node.name}</span>
+        <div class="bar-track" style="max-width:${barMaxW}px;height:${barH}px;">
+          <div class="bar-fill fill-${color}" style="width:${pct}%;"></div>
+        </div>
+        <span class="pct-label" style="font-size:${fontSize - 1}px;min-width:28px;">${pct}%</span>
+      </div>`;
+  }
+
+  const id       = 'nd-' + (uid++);
+  const children = node.children.map(c => renderNode(c, color, depth + 1)).join('');
+
+  return `
+    <div class="node" id="${id}">
+      <div class="node-header" onclick="document.getElementById('${id}').classList.toggle('open')"
+           style="padding:9px 18px 9px ${indent}px; gap:10px;">
+        <div style="flex:1;display:flex;align-items:center;gap:10px;">
+          <span style="flex:1;font-size:${fontSize}px;color:#94a3b8;">${node.name}</span>
+          <div class="bar-track" style="max-width:${barMaxW}px;height:${barH}px;">
+            <div class="bar-fill fill-${color}" style="width:${pct}%;"></div>
+          </div>
+          <span class="pct-label" style="font-size:${fontSize - 1}px;min-width:32px;">${pct}%</span>
+        </div>
+        <span class="chevron">▶</span>
+      </div>
+      <div class="node-children">${children}</div>
+    </div>`;
+}
+
+function renderDomain(domain) {
+  const pct      = progress(domain);
+  const children = domain.children.map(c => renderNode(c, domain.color, 0)).join('');
+
+  return `
+    <div class="domain" id="dom-${domain.id}">
+      <div class="domain-header" onclick="toggleDomain('dom-${domain.id}')">
+        <span class="text-lg c-${domain.color}">${domain.icon}</span>
+        <div style="flex:1;">
+          <div class="font-semibold text-sm mb-2" style="color:#e2e8f0;">${domain.name}</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="bar-track" style="height:5px;">
+              <div class="bar-fill fill-${domain.color}" style="width:${pct}%;"></div>
+            </div>
+            <span class="pct-label text-xs" style="min-width:36px;">${pct}%</span>
+          </div>
+        </div>
+        <span class="domain-chevron" id="chev-dom-${domain.id}">▶</span>
+      </div>
+      <div class="domain-children" id="children-dom-${domain.id}">${children}</div>
+    </div>`;
+}
+
+/* ─── Toggle domain (direct style, avoids Tailwind CSS conflicts) ─── */
+function toggleDomain(id) {
+  const children = document.getElementById('children-' + id);
+  const chevron  = document.getElementById('chev-' + id);
+  const isOpen   = children.style.display === 'block';
+  children.style.display = isOpen ? 'none' : 'block';
+  chevron.style.transform = isOpen ? '' : 'rotate(90deg)';
+}
+
+/* ─── Toggle all ─── */
+let allOpen = false;
+function toggleAll() {
+  allOpen = !allOpen;
+
+  // Domains — direct style (select by id pattern)
+  document.querySelectorAll('[id^="children-dom-"]').forEach(el => {
+    el.style.display = allOpen ? 'block' : 'none';
+  });
+  document.querySelectorAll('[id^="chev-dom-"]').forEach(el => {
+    el.style.transform = allOpen ? 'rotate(90deg)' : '';
+  });
+
+  // Nodes — class-based
+  document.querySelectorAll('.node').forEach(el => el.classList.toggle('open', allOpen));
+
+  document.getElementById('toggleBtn').textContent = allOpen ? 'collapse all' : 'expand all';
+}
+
+/* ─── Boot ─── */
+const DATA_URL = 'https://raw.githubusercontent.com/sachit3071/techvault/main/progress.json';
+
+function boot(data) {
+  document.getElementById('domains').innerHTML = data.map(renderDomain).join('');
+  document.getElementById('status').style.display = 'none';
+}
+
+function showError(msg) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.style.color = '#f87171';
+}
+
+fetch(DATA_URL)
+  .then(r => {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .then(boot)
+  .catch(err => {
+    console.warn('Failed to load progress.json, using fallback data.', err);
+    showError('⚠ Could not load progress.json — showing fallback data.');
+    boot(data);
+  });
+</script>
+
+</body>
+</html>
