@@ -40,13 +40,61 @@ Problems:
 # Naive Solution
 
 ```python
-if payment_type == "credit":
-    payment = CreditCardPayment()
-elif payment_type == "upi":
-    payment = UpiPayment()
+class CreditCardPayment:
+    def pay(self, amount):
+        print(f"Paid ₹{amount} using Credit Card")
+
+
+class UpiPayment:
+    def pay(self, amount):
+        print(f"Paid ₹{amount} using UPI")
+
+
+class CheckoutService:
+
+    def checkout(self, payment_type, amount):
+
+        if payment_type == "credit":
+            payment = CreditCardPayment()
+
+        elif payment_type == "upi":
+            payment = UpiPayment()
+
+        else:
+            raise ValueError("Unsupported payment")
+
+        payment.pay(amount)
 ```
 
 Works well for small systems.
+
+```puml
+@startuml
+
+title Phase 4 - Direct Object Creation
+
+class CheckoutService {
+    +checkout(type, amount)
+}
+
+class CreditCardPayment {
+    +pay()
+}
+
+class UpiPayment {
+    +pay()
+}
+
+CheckoutService ..> CreditCardPayment : creates
+CheckoutService ..> UpiPayment : creates
+
+note bottom
+Business logic and object creation
+are tightly coupled.
+end note
+
+@enduml
+```
 
 ---
 
@@ -64,6 +112,32 @@ PaymentFactory
       +--> UpiPayment
 ```
 
+```python
+class PaymentFactory:
+
+    def create_payment(self, payment_type):
+
+        if payment_type == "credit":
+            return CreditCardPayment()
+
+        elif payment_type == "upi":
+            return UpiPayment()
+
+        raise ValueError("Unsupported payment")
+
+class CheckoutService:
+
+    def __init__(self):
+        self.factory = PaymentFactory()
+
+    def checkout(self, payment_type, amount):
+
+        payment = self.factory.create_payment(payment_type)
+
+        payment.pay(amount)
+```
+
+
 Benefit:
 
 - Client becomes cleaner.
@@ -72,6 +146,37 @@ Problem:
 
 - Factory keeps growing.
 - Every new product modifies the factory.
+
+```puml
+@startuml
+
+title Phase 7 - Simple Factory
+
+class CheckoutService
+
+class PaymentFactory {
+    +createPayment(type)
+}
+
+class CreditCardPayment
+class UpiPayment
+
+CheckoutService --> PaymentFactory
+
+PaymentFactory ..> CreditCardPayment : creates
+PaymentFactory ..> UpiPayment : creates
+
+note bottom
+Creation is centralized.
+
+Problem:
+Factory grows with every
+new payment type.
+end note
+
+@enduml
+```
+
 
 ---
 
@@ -88,8 +193,109 @@ PaymentCreator
       +--> CreditCardCreator
       +--> UpiCreator
 ```
+```python
+from abc import ABC, abstractmethod
+
+class Payment(ABC):
+
+    @abstractmethod
+    def pay(self, amount):
+        pass
+
+class CreditCardPayment(Payment):
+    def pay(self, amount):
+        print(f"Paid ₹{amount} using Credit Card")
+
+
+class UpiPayment(Payment):
+    def pay(self, amount):
+        print(f"Paid ₹{amount} using UPI")
+```
+```python
+class PaymentCreator(ABC):
+
+    @abstractmethod
+    def create_payment(self):
+        pass
+class CreditCardCreator(PaymentCreator):
+
+    def create_payment(self):
+        return CreditCardPayment()
+
+
+class UpiCreator(PaymentCreator):
+
+    def create_payment(self):
+        return UpiPayment()
+class CheckoutService:
+
+    def __init__(self, creator: PaymentCreator):
+        self.creator = creator
+
+    def checkout(self, amount):
+
+        payment = self.creator.create_payment()
+
+        payment.pay(amount)
+```
+```python
+creator = UpiCreator()
+
+checkout = CheckoutService(creator)
+
+checkout.checkout(1000)
+```python
+```
+
+
 
 Each creator knows how to create only one product.
+
+```puml
+@startuml
+
+title Phase 8 - Factory Method (GoF Style)
+
+interface Payment {
+    +pay(amount)
+}
+
+class CreditCardPayment
+class UpiPayment
+
+Payment <|.. CreditCardPayment
+Payment <|.. UpiPayment
+
+
+abstract class PaymentCreator {
+    +create()
+    #createPayment()
+}
+
+class CreditCardCreator
+class UpiCreator
+
+PaymentCreator <|-- CreditCardCreator
+PaymentCreator <|-- UpiCreator
+
+CreditCardCreator ..> CreditCardPayment : creates
+UpiCreator ..> UpiPayment : creates
+
+class CheckoutService
+
+CheckoutService --> PaymentCreator : uses
+CheckoutService ..> Payment : uses
+
+note right of PaymentCreator
+create() is common.
+
+createPayment() is the
+Factory Method overridden
+by subclasses.
+end note
+
+@enduml
+```
 
 ---
 
